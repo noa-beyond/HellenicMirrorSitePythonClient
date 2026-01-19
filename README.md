@@ -3,6 +3,13 @@ NOA Sentinels Mirror API - Python Client Example
 
 This repository contains a robust Python client (`noa_mirror_documentation_example.py`) for querying and downloading satellite imagery from the **NOA Sentinels Mirror**. It demonstrates how to interact with the OData API, handle authentication, build complex multi-mission filters, and manage pagination automatically.
 
+## Service Endpoints
+
+* **Authentication:** `https://sentinels.space.noa.gr/auth`
+* **API:** `https://sentinels.space.noa.gr/catalogue/odata/v1`
+* **UI:** `https://sentinels.space.noa.gr/copsi`
+* **STACAPI:** `https://sentinels.space.noa.gr/copsi/stac` (This feature is currently under development)
+
 ## Features
 
 * **Complex Query Builder:** Easily construct advanced filters combining AND/OR logic for multiple missions (e.g., "Get Sentinel-1 GRD OR Sentinel-2 L2A with < 20% cloud cover").
