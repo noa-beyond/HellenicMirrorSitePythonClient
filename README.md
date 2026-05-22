@@ -8,7 +8,7 @@ This repository contains a robust Python client (`noa_mirror_documentation_examp
 * **Authentication:** `https://sentinels.space.noa.gr/auth`
 * **API:** `https://sentinels.space.noa.gr/catalogue/odata/v1`
 * **UI:** `https://sentinels.space.noa.gr/copsi`
-* **STACAPI:** `https://sentinels.space.noa.gr/copsi/stac` (This feature is currently under development)
+* **STACAPI:** `https://sentinels.space.noa.gr/stac` (This feature is currently under development)
 
 ## Features
 
