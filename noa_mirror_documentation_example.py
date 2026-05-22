@@ -2,8 +2,8 @@
 NOA Sentinels Mirror API - Documentation & Example
 ================================================================
 
-This script demonstrates how to build complex, multi-mission OData queries. 
-It covers Temporal, Spatial, and Attribute filtering 
+This script demonstrates how to build complex, multi-mission OData queries.
+It covers Temporal, Spatial, and Attribute filtering
 for Sentinel-1, 2, 3, and 5P.
 
 FEATURES:
@@ -31,7 +31,7 @@ logger = logging.getLogger("NOA_Client")
 
 class ODataBuilder:
     """Helper to generate OData attribute filter strings."""
-    
+
     @staticmethod
     def string_attr(name, value):
         """
@@ -70,7 +70,7 @@ class NOAClient:
         self.password = password
         self.base_url = "https://sentinels.space.noa.gr/catalogue/odata/v1"
         self.auth_url = "https://sentinels.space.noa.gr/auth/realms/mirror/protocol/openid-connect/token"
-        self.client_id = "mirror-client" 
+        self.client_id = "mirror-client"
         self.token = None
         self.token_expiry = 0
 
@@ -100,7 +100,7 @@ class NOAClient:
     def search_complex(self, mission_rules, footprint_wkt, time_filter, max_results=1000):
         """
         Constructs and executes the complex OData filter with PAGINATION.
-        
+
         Args:
             mission_rules (list): List of dicts, where each dict represents a set of OR conditions.
             footprint_wkt (str): WKT Polygon string.
@@ -108,17 +108,17 @@ class NOAClient:
             max_results (int): Safety limit for number of results.
         """
         token = self._get_token()
-        
+
         # --- Temporal Filters ---
         temporal_parts = []
         if "content_start" in time_filter and "content_end" in time_filter:
             temporal_parts.append(f"ContentDate/Start ge {time_filter['content_start']}")
             temporal_parts.append(f"ContentDate/End le {time_filter['content_end']}")
-            
+
         if "pub_start" in time_filter and "pub_end" in time_filter:
             temporal_parts.append(f"PublicationDate ge {time_filter['pub_start']}")
             temporal_parts.append(f"PublicationDate le {time_filter['pub_end']}")
-            
+
         temporal_block = f"({' and '.join(temporal_parts)})" if temporal_parts else ""
 
         # --- Mission Attribute Rules (OR logic) ---
@@ -170,10 +170,10 @@ class NOAClient:
 
         # --- Encoding ---
         encoded_filter = quote(raw_filter_str, safe="():,=;/")
-        
+
         # Initial URL (Top 50 per page by default but this can be changed but expect a dip in the query perfomance)
         url = f"{self.base_url}/Products?$filter={encoded_filter}&$orderby=ContentDate/Start asc&$top=50"
-        
+
         logger.info("Executing Complex Search (with Pagination)...")
         return self._fetch_all_pages(url, max_results)
 
@@ -181,36 +181,36 @@ class NOAClient:
         """Follows @odata.nextLink until done or max_results reached."""
         all_products = []
         url = start_url
-        
+
         while url and len(all_products) < max_results:
             headers = {"Authorization": f"Bearer {self._get_token()}"}
-            
+
             try:
                 r = requests.get(url, headers=headers, timeout=20)
-                
+
                 if r.status_code == 200:
                     data = r.json()
                     products = data.get("value", [])
                     all_products.extend(products)
-                    
+
                     logger.info(f"Fetched {len(products)} items (Total: {len(all_products)})")
-                    
+
                     url = data.get("@odata.nextLink", None)
                 else:
                     logger.error(f"Page fetch failed [{r.status_code}]: {r.text}")
                     break
-                    
+
             except Exception as e:
                 logger.error(f"Request error: {e}")
                 break
-                
+
         return all_products[:max_results]
 
     def download_product(self, product_id, filename):
         token = self._get_token()
         headers = {"Authorization": f"Bearer {token}"}
         url = f"{self.base_url}/Products({product_id})/$value"
-        
+
         logger.info(f"Downloading {filename}...")
         try:
             with requests.get(url, headers=headers, stream=True) as r:
@@ -228,18 +228,18 @@ class NOAClient:
             return False
 
 if __name__ == "__main__":
-    USER = os.getenv("USERNAME", "YOUR_USERNAME")
-    PASS = os.getenv("PASSWORD", "YOUR_PASSWORD")
-  
+    USER = os.getenv("USERNAME", "USERNAME")
+    PASS = os.getenv("PASSWORD", "PASSWORD")
+
   # AREA OF INTEREST
     ROI = 'POLYGON((1.2044961305558362 41.78123498842218,26.573288970814286 41.78123498842218,26.573288970814286 34.831324412099384,1.2044961305558362 34.831324412099384,1.2044961305558362 41.78123498842218))'
 
     # TIME SETTINGS
     TIME_CONFIG = {
         "content_start": "2026-01-11T00:00:00.000Z",
-        "content_end":   "2026-01-19T23:59:59.999Z",
-        "pub_start":     "2026-01-11T00:00:00.000Z",
-        "pub_end":       "2026-01-19T23:59:59.999Z"
+        "content_end":   "2026-05-22T23:59:59.999Z",
+        "pub_start":     "2026-05-11T00:00:00.000Z",
+        "pub_end":       "2026-05-22T23:59:59.999Z"
     }
 
     # MISSION RULES
@@ -293,9 +293,10 @@ if __name__ == "__main__":
         print("\n--- Download Candidates ---")
         for i, p in enumerate(products):
             print(f"{i+1}. {p['Name']} ({p['ContentLength']} bytes)")
-        
+
         product = products[i]
         # Uncomment to download products
-        # client.download_product(product['Id'], product['Name'])
+        for product in products:
+            client.download_product(product['Id'], product['Name'])
     else:
         print("\nNo products found. Try expanding dates or ROI.")
